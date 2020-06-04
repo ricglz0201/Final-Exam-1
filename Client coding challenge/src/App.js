@@ -31,7 +31,11 @@ const App = () => {
   return (
     <section>
       <BookForm callback={fetchAndUpdateBooks} />
-      {books.map((book) => <Book key={book.id} book={book} />)}
+      <section className="books">
+        {
+          books.map((book) => <Book key={book.id} book={book} />)
+        }
+      </section>
       <div>{error}</div>
     </section>
   )
