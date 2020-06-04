@@ -1,4 +1,5 @@
 const bodyParser = require( 'body-parser' );
+const errorHandler = require('./middleware/errorHandler.js');
 const express = require( 'express' );
 const jsonParser = bodyParser.json();
 const mongoose = require( 'mongoose' );
@@ -7,6 +8,7 @@ const { DATABASE_URL, PORT } = require( './config' );
 const { Movies } = require('./models/movie-model.js');
 
 const app = express();
+app.use(errorHandler);
 
 function hasActor(actors, actor) {
   const wantedId = actor._id;
@@ -16,29 +18,32 @@ function hasActor(actors, actor) {
 app.patch('/api/add-movie-actor/:movie_ID', jsonParser, async (req, res) => {
   const { id, firstName, lastName } = req.body;
   if(!id) {
-    // "Id is missing in the body of the request"
+    return req.fieldMissingInBody('Id', res);
   }
   const { movie_ID } = req.params;
   if(id != movie_ID) {
-    // "Id and movie_ID do not match"
+    return req.fieldsDontMatch('id', 'movie_ID', res);
   }
   if(!firstName || !lastName) {
-    // "You need to send both firstName and lastName of the actor to add to the movie list".
+    return req.fieldsMissing('firstName', 'lastName', res);
   }
   try {
     const movie = await Movies.findMovieByID(id);
+    if(!movie) {
+      return req.notFound('movie', res);
+    }
     const actor = await Actors.findActorByName({ firstName, lastName });
-    if(!movie || !actor) {
-      // "The actor or movie do not exist".
+    if(!actor) {
+      return req.notFound('actor', res);
     }
     if(hasActor(movie.actors, actor)) {
-      // "The actor is already in the movie list".
+      return req.alreadyExisted('actor', res);
     }
     movie.actors.push(actor);
     await Movies.addActorToMovieList();
     return res.json(movie).status(201);
   } catch (err) {
-    // Show error with 500
+    return req.errorMessage('Problem with the database', 500, res);
   }
 })
 

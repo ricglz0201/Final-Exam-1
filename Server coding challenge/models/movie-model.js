@@ -20,7 +20,7 @@ const moviesSchema = mongoose.Schema({
     },
     actors : [{
         type : mongoose.Schema.Types.ObjectId,
-        ref : 'authors',
+        ref : 'actors',
         required : true
     }]
 });
