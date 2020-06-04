@@ -37,13 +37,24 @@ const Movies = {
                 .catch( err => {
                     throw new Error( err );
                 });
+    },
+  findMovieByID: async function (movie_ID) {
+    try {
+      return await moviesCollection.findOne({ movie_ID });
+    } catch (err) {
+      throw new Error(err);
     }
-    /*
-        Your code goes here
-    */
+  },
+  addActorToMovieList: async function(movie) {
+    try {
+      const { movie_ID } = movie;
+      return await moviesCollection.findOneAndUpdate({ movie_ID }, movie);
+    } catch (err) {
+      throw new Error(err);
+    }
+  }
 }
 
 module.exports = {
     Movies
 };
-
